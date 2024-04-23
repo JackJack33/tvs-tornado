@@ -1,0 +1,40 @@
+services:
+  tvs_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tvs_api
+    container_name: api
+    restart: unless-stopped
+    depends_on:
+      - redis_db
+    environment:
+      REDIS_IP: 'redis_db'
+      SCRIPT: 'web_app/api.py'
+    ports:
+      - "5000:5000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tvs_worker
+    container_name: worker
+    restart: unless-stopped
+    depends_on:
+      - tvs_api
+      - redis_db
+    environment:
+      REDIS_IP: 'redis_db'
+      SCRIPT: 'worker.py'
+
+
+  redis_db:
+    image: redis:7
+    container_name: redis_db
+    restart: always
+    volumes:
+      - ./data:/data
+    ports:
+      - "6379:6379"
+    command: ["--save", "1", "1"]
