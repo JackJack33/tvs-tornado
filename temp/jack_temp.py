@@ -1,27 +1,53 @@
-from pygeodesy.sphericalNvector import LatLon
+import matplotlib.pyplot as plt
+from datetime import datetime
+# Example counts dictionary
+counts = {
+    2023: {
+        1: {'SEVERE THUNDERSTORM': 5, 'TORNADO': 10},
+        2: {'SEVERE THUNDERSTORM': 8, 'FLASH FLOOD': 3}
+    },
+    2024: {
+        3: {'TORNADO': 6, 'FLASH FLOOD': 7},
+        4: {'SEVERE THUNDERSTORM': 4, 'TORNADO': 2}
+    }
+}
 
-# NOTE: Lat/Lon order is reversed in the polygon sections of the data (i.e. "POLYGON((Lon Lat Lon Lat))")
-# this is reversed in the convertToLatLonPoly() function to tuples of (Lat, Lon)
+start = "2022-1-1 00:00:00"
+end = "2025-1-1 00:00:00"
 
-def isInsideLatLonPoly(p_in, poly_in):
-    p = LatLon(p_in[0], p_in[1])
-    poly = []
-    for poly_point in poly_in:
-        poly.append(LatLon(poly_point[0], poly_point[1]))
-    return p.isenclosedBy(poly)
+start_timestamp = datetime.strptime(start, "%Y-%m-%d %H:%M:%S")
+end_timestamp = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
 
-#POLYGON(Lon Lat Lon Lat Lon Lat ...)
-def convertToLatLonPoly(poly_string_in):
-    coords_str = poly_string_in.split("((")[1].split("))")[0]
-    coords = coords_str.strip().split()
-    lon_lat_pairs = [(float(coords[i+1]), float(coords[i])) for i in range(0, len(coords), 2)]
-    return lon_lat_pairs
 
-polystring = "POLYGON((-80.42 24.93 -80.44 24.97 -80.71 24.8 -80.59 24.67 -80.33 24.81 -80.42 24.93))"
-poly = convertToLatLonPoly(polystring)
-print(poly)
-p = (24.93, -80.43) # True
-print(isInsideLatLonPoly(p, poly))
-p = (24.93, -80.41) # False
-print(isInsideLatLonPoly(p, poly))
 
+# Initialize lists to store data for plotting
+months = []
+warning_types = set()  # Use a set to collect unique warning types
+for year in range(start_timestamp.year, end_timestamp.year + 1):
+    for month in range(1, 13):  # Iterate over all months
+        months.append(datetime(year, month, 1))  # Assuming the first day of each month for simplicity
+        try:
+            for warning_type in counts[year][month]:
+                warning_types.add(warning_type)
+        except Exception as e:
+            print(e)
+
+fig = plt.figure(figsize=(10, 6))
+for warning_type in warning_types:
+    counts_list = []
+    for month in months:
+        year = month.year
+        month_num = month.month
+        try:
+            counts_list.append(counts[year][month_num].get(warning_type, 0))
+        except Exception as e:
+            print(e)
+    plt.plot(months, counts_list, label=warning_type)
+
+plt.xlabel('Time')
+plt.ylabel('Count')
+plt.title('Event Counts Over Time')
+plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
+plt.show()
