@@ -8,9 +8,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
 {% endblock %}
 
 {% block body %}
+    <input class="inputs" id="start_date" type="date" value="2017-06-01" />
+    <input class="inputs" id="end_date" type="date" value="2017-06-01" />
+
     <div id="map" style="width: 600px; height: 400px; position: relative; outline:none;"
          class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
          tabindex="0"></div>

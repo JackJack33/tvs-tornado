@@ -55,9 +55,10 @@ class RedisHandler:
     def hget(self, db_enum: int, name: str, key: str):
         return self.db[db_enum].hget(name, key)
 
-    def add_job(self):
+    def add_job(self, job_info):
         jid = str(uuid.uuid4())
-        job_info = {'id': jid, 'status': 'Submitted'}
+        job_info['id'] = jid
+        job_info['status'] = 'Submitted'
         self.db[RedisEnum.JOBS].hset(jid, mapping=job_info)
         self.add_to_q(job_info)
         return jid

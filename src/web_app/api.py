@@ -23,7 +23,8 @@ def data():
     if request.method == 'POST':
         logging.info('Retrieving data from NOAA data host...')
         try:
-            handler.post_tvs_data('https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/tvs-2008.csv.gz')
+            # [handler.post_tvs_data(f'https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/warn-20{year:02}.csv.gz') for year in range(6, 17)]
+            handler.post_tvs_data(f'https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/warn-2006.csv.gz')
             return 'Successfully created database.\n'
         except EnvironmentError:
             logging.warning('POST /data request made with data already in Redis database...')
@@ -45,15 +46,15 @@ def data():
 @app.route('/jobs', methods=['GET', 'POST'])
 def jobs():
     if request.method == 'POST':
-        # TODO: Sanitize input args to add job
-        jid = handler.add_job()
+        request.json['polygon'] = 'POLYGON((' + ' '.join([f'{lon} {lat}' for lon, lat in request.json['polygon']]) + '))'
+        jid = handler.add_job(request.json)
         logging.info(f'Job {jid} added to Redis database...')
         return {key.decode(): val.decode() for key, val in handler.get(RedisEnum.JOBS, jid, True).items()}
     elif request.method == 'GET':
         return handler.get_keys(RedisEnum.JOBS)
 
 
-@app.route('/jobs/<jid>', methods=['Get'])
+@app.route('/jobs/<jid>', methods=['GET'])
 def job_info(jid):
     '''
     Route to return information about a given job ID from Redis database

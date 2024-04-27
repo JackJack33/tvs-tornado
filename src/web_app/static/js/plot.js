@@ -24,4 +24,4 @@ async function get_results(host_ip, jid, status) {
     document.getElementById('plot').src = `data:image/png;base64,${pic}`
 }
 
-main()
+// main()
