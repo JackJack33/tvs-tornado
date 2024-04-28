@@ -1,9 +1,9 @@
 import os
 from io import BytesIO
 import base64
+import matplotlib.pyplot as plt
 from hotqueue import HotQueue
 from redis_handler import RedisHandler, RedisEnum
-from matplotlib.figure import Figure
 from pygeodesy.sphericalNvector import LatLon
 from shapely.geometry import Polygon
 from shapely.ops import transform
@@ -47,11 +47,19 @@ def worker(job_info):
 
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
 
+    # Initialize counts dictionary, months, warning_types
+
+    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
+    months = []
     counts = {}
     for year in range(start_timestamp.year, end_timestamp.year + 1):
-
+        for month in range(1, 12+1):
+            months.append(datetime(year, month, 1))
+            for warning_type in warning_types:
+                counts[year][month][warning_type] = 0
 
     # Filter relevant warnings
+
     interest_poly = convertToPolygon(interest_poly_string)
 
     for val in handler.get_all_data():
@@ -64,14 +72,22 @@ def worker(job_info):
 
         year = val_timestamp.year
         month = val_timestamp.month
-        if year not in counts:
-            counts[year] = {}
-        if month not in counts[year]:
-            counts[year][month] = {}
+        counts[year][month][val['type']] += 1
 
-        counts[year][month][val['type']] = counts[year][month].get(val['type'], 0) + 1
+    # Graph
 
-    # Graph (NOT DONE)
+    fig = plt.figure()
+    for warning_type in warning_types:
+        counts_list = [counts[(year, month)][warning_type] for year, month in zip(months)]
+        plt.plot(months, counts_list, label=warning_type)
+    plt.xlabel('Time')
+    plt.ylabel('Count')
+    plt.title('Event Counts Over Time')
+    plt.legend()
+    plt.grid(True)
+    plt.xticks(rotation=45)
+
+    # Completion
 
     buf = BytesIO()
     fig.savefig(buf, format='png')
