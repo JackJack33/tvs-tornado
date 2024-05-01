@@ -22,7 +22,7 @@ def to_geographic(x, y):
     return transformer.transform(x, y)
 
 def convertToPolygon(poly_string_in):
-    coords_str = poly_string_in.split("((")[1].split("))")[0]
+    coords_str = poly_string_in.split("((")[1].split("))")[0] # POLYGON((Lon Lat Lon Lat...))
     coords = coords_str.strip().split()
     lon_lat_pairs = [(float(coords[i]), float(coords[i+1])) for i in range(0, len(coords), 2)]
     lon_lat_pairs_cartesian = [to_cartesian(lon, lat) for lon, lat in lon_lat_pairs]
@@ -32,6 +32,34 @@ def doPolygonsIntersect(poly1_in, poly2_in):
     poly1 = convertToPolygon(poly1_in)
     poly2 = convertToPolygon(poly2_in)
     return poly1.intersects(poly2)
+
+def countRelevantPolygonIntersections(start_timestamp, end_timestamp, interest_poly_string, data_dict):
+
+    # Initialize counts dictionary, months, warning_types
+    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
+    months = []
+    counts = {}
+    for year in range(start_timestamp.year, end_timestamp.year + 1):
+        for month in range(1, 12+1):
+            months.append(datetime(year, month, 1))
+            for warning_type in warning_types:
+                counts[year][month][warning_type] = 0
+
+    # Filter relevant warnings
+    interest_poly = convertToPolygon(interest_poly_string)
+    for val in data_dict:
+        val_timestamp = datetime.strptime(val['timestamp'], "%Y-%m-%d %H:%M:%S")
+        if (val_timestamp < start_timestamp) or (val_timestamp > end_timestamp):
+            continue
+        warning_poly = convertToPolygon(val['polygon'])
+        if not (doPolygonsIntersect(interest_poly, warning_poly)):
+            continue
+
+        year = val_timestamp.year
+        month = val_timestamp.month
+        counts[year][month][val['type']] += 1
+
+    return counts
 
 @q.worker
 def worker(job_info):
@@ -46,33 +74,8 @@ def worker(job_info):
     end_timestamp = datetime.strptime(end, "%Y-%m-%d %H:%M:%S")
 
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
-
-    # Initialize counts dictionary, months, warning_types
-
-    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
-    months = []
-    counts = {}
-    for year in range(start_timestamp.year, end_timestamp.year + 1):
-        for month in range(1, 12+1):
-            months.append(datetime(year, month, 1))
-            for warning_type in warning_types:
-                counts[year][month][warning_type] = 0
-
-    # Filter relevant warnings
-
-    interest_poly = convertToPolygon(interest_poly_string)
-
-    for val in handler.get_all_data():
-        val_timestamp = datetime.strptime(val['timestamp'], "%Y-%m-%d %H:%M:%S")
-        if (val_timestamp < start_timestamp) or (val_timestamp > end_timestamp):
-            continue
-        warning_poly = convertToPolygon(val['polygon'])
-        if not (doPolygonsIntersect(interest_poly, warning_poly)):
-            continue
-
-        year = val_timestamp.year
-        month = val_timestamp.month
-        counts[year][month][val['type']] += 1
+    data_dict = handler.get_all_data()
+    counts = countRelevantPolygonIntersections(start_timestamp, end_timestamp, interest_poly_string, data_dict)
 
     # Graph
 
@@ -93,6 +96,7 @@ def worker(job_info):
     fig.savefig(buf, format='png')
     handler.set(RedisEnum.RESULTS, job_info['id'], base64.b64encode(buf.getbuffer()))
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'Complete'))
+
 
 
 if __name__ == '__main__':
