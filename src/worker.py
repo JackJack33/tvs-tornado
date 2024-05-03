@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 import base64
 from matplotlib.figure import Figure
@@ -34,10 +35,9 @@ def do_polygons_intersect(poly1_in, poly2_in): # Separated for testing purposes
     return poly1_in.intersects(poly2_in)
 
 
-def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interest_poly_string, data_dict):
+def count_relevant_polygon_intersections(warning_types, start_timestamp, end_timestamp, interest_poly_string, data_dict):
 
     # Initialize counts dictionary, months, warning_types
-    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
     months = []
     counts = {}
     for year in range(start_timestamp.year, end_timestamp.year + 1):
@@ -51,39 +51,41 @@ def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interes
     # Filter relevant warnings
     interest_poly = convert_to_polygon(interest_poly_string)
     for val in data_dict:
-        val_timestamp = datetime.strptime(val['timestamp'], '%Y-%m-%d %H:%M:%S')
+        val_timestamp = datetime.strptime(val['#ISSUEDATE'], '%Y-%m-%d %H:%M:%S.%f')
         if (val_timestamp < start_timestamp) or (val_timestamp > end_timestamp):
             continue
-        warning_poly = convert_to_polygon(val['polygon'])
+        warning_poly = convert_to_polygon(val['POLYGON'])
         if not (do_polygons_intersect(interest_poly, warning_poly)):
             continue
 
         year = val_timestamp.year
         month = val_timestamp.month
-        counts[year][month][val['type']] += 1
+        counts[year][month][val['WARNINGTYPE']] += 1
 
     return counts, months
 
 
 @q.worker
-def worker(job_info):
+def worker(job_info: dict):
 
     # Needs inputs:
     # - start_date : start timestamp string
     # - end_date   : end timestamp string
     # - polygon    : polygon string of interest
 
+
+    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
     start_date = datetime.strptime(job_info['start_date'], '%Y-%m-%d')
     end_date = datetime.strptime(job_info['end_date'], '%Y-%m-%d')
 
+    logging.info(job_info['warning_types'].split(', '))
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
     data_dict = handler.get_all_data()
-    counts, months = count_relevant_polygon_intersections(start_date, end_date, job_info['polygon'], data_dict)
+    counts, months = count_relevant_polygon_intersections(warning_types, start_date, end_date, job_info['polygon'], data_dict)
 
     # Graph
     fig = Figure()
     ax = fig.subplots()
-    # months = pd.date_range('2006-1-1','2016-12-31', freq='1ME').strftime('%m-%Y').str.split('-').tolist()
 
     def get_count(dates, warning_type):
         try:
@@ -91,7 +93,7 @@ def worker(job_info):
         except KeyError:
             return 0
 
-    for warning_type in job_info['warning_types']:
+    for warning_type in job_info['warning_types'].split(', '):
         counts_list = list(map(get_count, months, repeat(warning_type)))
         ax.plot(months, counts_list, label=warning_type)
     ax.xlabel('Time')
@@ -110,4 +112,5 @@ def worker(job_info):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     worker()

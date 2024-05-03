@@ -57,6 +57,7 @@ def data():
 def jobs():
     if request.method == 'POST':
         request.json['polygon'] = 'POLYGON((' + ' '.join([f'{lon} {lat}' for lon, lat in request.json['polygon']]) + '))'
+        request.json['warning_types'] = ', '.join(request.json['warning_types'])
         jid = handler.add_job(request.json)
         logging.info(f'Job {jid} added to Redis database...')
         return {key.decode(): val.decode() for key, val in handler.get(RedisEnum.JOBS, jid, True).items()}
