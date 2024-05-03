@@ -79,6 +79,7 @@ def worker(job_info: dict):
     # - end_date   : end timestamp string
     # - polygon    : polygon string of interest
 
+    logging.info("Worker function started.")
 
     warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
     start_date = datetime.strptime(job_info['start_date'], '%Y-%m-%d')
@@ -86,8 +87,14 @@ def worker(job_info: dict):
 
     logging.info(job_info['warning_types'].split(', '))
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
+
+    logging.info("Retrieving all Redis data...")
     data_dict = handler.get_all_data()
+
+    logging.info("Done. Counting...")
     counts, months = count_relevant_polygon_intersections(warning_types, start_date, end_date, job_info['polygon'], data_dict)
+
+    logging.info("Done. Graphing...")
 
     # Graph
     fig = Figure()
@@ -109,12 +116,15 @@ def worker(job_info: dict):
     ax.grid(True)
     ax.xticks(rotation=45)
 
+    logging.info("Done. Exporting...")
+
     # Completion
 
     buf = BytesIO()
     fig.savefig(buf, format='png')
     handler.set(RedisEnum.RESULTS, job_info['id'], base64.b64encode(buf.getbuffer()))
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'Complete'))
+    logging.info("Done. Worker function ended.")
 
 
 if __name__ == '__main__':
