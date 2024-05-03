@@ -81,11 +81,11 @@ def worker(job_info: dict):
 
     logging.info("Worker function started.")
 
-    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
+    warning_types = job_info['warning_types'].split(', ')
     start_date = datetime.strptime(job_info['start_date'], '%Y-%m-%d')
     end_date = datetime.strptime(job_info['end_date'], '%Y-%m-%d')
 
-    logging.info(job_info['warning_types'].split(', '))
+    logging.info(warning_types)
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
 
     logging.info("Retrieving all Redis data...")
@@ -106,15 +106,19 @@ def worker(job_info: dict):
         except KeyError:
             return 0
 
-    for warning_type in job_info['warning_types'].split(', '):
-        counts_list = list(map(get_count, months, repeat(warning_type)))
-        ax.plot(months, counts_list, label=warning_type)
-    ax.xlabel('Time')
-    ax.ylabel('Count')
-    ax.title('Event Counts Over Time')
+    flattened_months = [f"{month}-{year}" for year, month in months]
+
+    for warning_type in warning_types:
+        counts_list = [get_count([str(month), str(year)], warning_type) for year, month in months]
+        ax.plot(flattened_months, counts_list, label=warning_type)
+
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Count')
+    ax.set_title('Event Counts Over Time')
     ax.legend()
     ax.grid(True)
-    ax.xticks(rotation=45)
+    ax.tick_params(axis='x', rotation=45)
+
 
     logging.info("Done. Exporting...")
 
