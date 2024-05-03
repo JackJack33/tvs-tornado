@@ -2,7 +2,7 @@
 
 ### Overview
 
-##### Data available at: https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/
+#### Data available at: https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/
 This web app uses a combination of Flask, Redis, Leaflet, and Kubernetes to provide an interactive service for summarizing severe weather data in a specific area.
 These statistics are from 2006 to 2016, and are provided in `.csv.gz` format from NOAA's NCEI.
 
@@ -17,10 +17,14 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 | `test_worker.py`     | Test file for worker.py                            |
 
 ### Running the Code
-#### Normal
 
+#### Deployment
+##### Local
+##### Kubernetes
 
-#### Testing
+#### Usage
+##### Local
+##### Public
 
 ### Flask Interaction
 You can interact with the flask app via `curl localhost:5000/<route>` once it is up and running.
