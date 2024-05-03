@@ -14,7 +14,7 @@ q = handler._get_q_obj()
 
 def to_cartesian(lon, lat):
     transformer = Transformer.from_crs(4326, 5070)  # EPSG:4326 (WGS 84) to EPSG:5070 (NAD83 / Conus Albers)
-    return transformer.transform(lon, lat)
+    return transformer.transform(lat, lon) # Switched for some reason
 
 
 def to_geographic(x, y):
@@ -30,10 +30,8 @@ def convert_to_polygon(poly_string_in):
     return Polygon(lon_lat_pairs_cartesian)
 
 
-def do_polygons_intersect(poly1_in, poly2_in):
-    poly1 = convert_to_polygon(poly1_in)
-    poly2 = convert_to_polygon(poly2_in)
-    return poly1.intersects(poly2)
+def do_polygons_intersect(poly1_in, poly2_in): # Separated for testing purposes
+    return poly1_in.intersects(poly2_in)
 
 
 def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interest_poly_string, data_dict):
@@ -43,8 +41,10 @@ def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interes
     months = []
     counts = {}
     for year in range(start_timestamp.year, end_timestamp.year + 1):
+        counts[year] = {}
         for month in range(1, 12+1):
-            months.append(datetime(year, month, 1))
+            counts[year][month] = {}
+            months.append([str(month), str(year)])
             for warning_type in warning_types:
                 counts[year][month][warning_type] = 0
 
@@ -62,28 +62,28 @@ def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interes
         month = val_timestamp.month
         counts[year][month][val['type']] += 1
 
-    return counts
+    return counts, months
 
 
 @q.worker
 def worker(job_info):
 
-    # Need inputs:
-    # - start                  : start timestamp string
-    # - end                    : end timestamp string
-    # - interest_poly_string   : polygon string of interest
+    # Needs inputs:
+    # - start_date : start timestamp string
+    # - end_date   : end timestamp string
+    # - polygon    : polygon string of interest
 
     start_date = datetime.strptime(job_info['start_date'], '%Y-%m-%d')
     end_date = datetime.strptime(job_info['end_date'], '%Y-%m-%d')
 
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
     data_dict = handler.get_all_data()
-    counts = count_relevant_polygon_intersections(start_date, end_date, job_info['polygon'], data_dict)
+    counts, months = count_relevant_polygon_intersections(start_date, end_date, job_info['polygon'], data_dict)
 
     # Graph
     fig = Figure()
     ax = fig.subplots()
-    months = pd.date_range('2006-1-1','2016-12-31', freq='1ME').strftime('%m-%Y').str.split('-').tolist()
+    # months = pd.date_range('2006-1-1','2016-12-31', freq='1ME').strftime('%m-%Y').str.split('-').tolist()
 
     def get_count(dates, warning_type):
         try:
