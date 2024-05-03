@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-prod-deployment-worker
+  labels:
+    app: app-prod-deployment-worker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app-prod-deployment-worker
+  template:
+    metadata:
+      labels:
+        app: app-prod-deployment-worker
+    spec:
+      containers:
+        - name: app-prod-deployment-worker
+          imagePullPolicy: Always
+          image: hsosbee/tvs_worker
+          ports:
+          - name: http
+            containerPort: 5000
+          env:
+            - name: REDIS_IP
+              value: "redis-db"
+            - name: SCRIPT
+              value: "worker.py"

@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-prod-deployment-flask
+  labels:
+    app: app-prod-deployment-flask
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-prod-deployment-flask
+  template:
+    metadata:
+      labels:
+        app: app-prod-deployment-flask
+    spec:
+      containers:
+        - name: app-prod-deployment-flask
+          imagePullPolicy: Always
+          image: hsosbee/tvs_api
+          ports:
+          - name: http
+            containerPort: 5000
+          env:
+            - name: REDIS_IP
+              value: "redis-db"
+            - name: SCRIPT
+              value: "web_app/api.py"
