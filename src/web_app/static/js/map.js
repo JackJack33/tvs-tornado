@@ -4,6 +4,17 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map)
 map.setZoom(18)
 
+let end_date_elem = document.getElementById('end_date')
+end_date_elem.addEventListener('change', (e) => {
+    if ((new Date(e.target.value)).getTime() < (new Date(document.getElementById('start_date').value)).getTime()) {
+        map._handlers.forEach(function(handler) { handler.disable() })
+        document.getElementById('dates').innerText = 'Error: End date is earlier than start date. Please fix before progressing to the map.'
+    } else {
+        map._handlers.forEach(function(handler) { handler.enable() })
+        document.getElementById('dates').innerText = ''
+    }
+})
+
 let drawnItems = new L.FeatureGroup()
 map.addLayer(drawnItems)
 let drawControl = new L.Control.Draw({
@@ -31,10 +42,13 @@ map.addControl(drawControl)
 map.on('draw:created', (e) => {
     drawnItems.clearLayers()
     drawnItems.addLayer(e.layer)
-    const inputs = document.getElementsByClassName("inputs");
+    const inputs = document.getElementsByClassName('inputs');
     let payload = {}
     let points = Array()
-    Array.from(inputs).forEach((input) => { payload[input.id] = input.value })
+    let warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
+    Array.from(inputs).forEach((input) => {
+        if (!warning_types.includes(input.id) || input.checked) { payload[input.id] = input.value }
+    })
     e.layer.getLatLngs().filter((element, index) => {return index % 2 === 0})[0].forEach((point) => {points.push([point.lat, point.lng])})
     payload.polygon = points
 

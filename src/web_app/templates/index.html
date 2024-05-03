@@ -13,8 +13,18 @@
 {% endblock %}
 
 {% block body %}
-    <input class="inputs" id="start_date" type="date" value="2017-06-01" />
-    <input class="inputs" id="end_date" type="date" value="2017-06-01" />
+    <p>First, select two dates--ensuring the latter date is later than the former. <br/> Second, draw a polygon on the map for the area of interest. <br/>Lastly, await the render fo your plot which will be revealed below</p>
+    <input class="inputs" id="start_date" type="date" value="2006-01-01" min="2006-01-01" max="2016-01-01" />
+    <input class="inputs" id="end_date" type="date" value="2016-01-01" min="2006-01-01" max="2016-01-01"  />
+    <p id="dates"></p>
+    <input class="inputs" id="SEVERE THUNDERSTORM" type="checkbox">
+    <label for="SEVERE THUNDERSTORM">SEVERE THUNDERSTORM </label><br>
+    <input class="inputs" id="TORNADO" type="checkbox">
+    <label for="TORNADO">TORNADO </label><br>
+    <input class="inputs" id="FLASH FLOOD" type="checkbox">
+    <label for="FLASH FLOOD">FLASH FLOOD </label><br>
+    <input class="inputs" id="SPECIAL MARINE" type="checkbox">
+    <label for="SPECIAL MARINE">SPECIAL MARINE </label><br>
 
     <div id="map" style="width: 600px; height: 400px; position: relative; outline:none;"
          class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
