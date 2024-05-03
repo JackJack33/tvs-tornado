@@ -29,16 +29,17 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 ### Flask Interaction
 You can interact with the flask app via `curl localhost:5000/<route>` once it is up and running.
 
-| Route     | Method | Description                                  |
-|-----------|--------|----------------------------------------------|
-| `/`         | `GET`    | Returns index.html (webpage)                 |
-| `/data`     | `GET`    | Returns all data from Redis                  |
-| `/data`     | `POST`   | Retrieves data from NOAA’s NCEI website      |
-| `/data`     | `DELETE` | Deletes all data from Redis                  |
-| `/jobs`     | `GET`    | Returns all job IDs                          |
-| `/jobs`     | `POST`   | Posts a new job to Redis and returns job ID |
-| `/jobs/<jid>` | `GET`   | Returns information for a specific job ID    |
-| `/results/<jid>` | `GET` | Returns results from a specific job ID       |
+| Route            | Method   | Description                                 |
+|------------------|----------|---------------------------------------------|
+| `/`              | `GET`    | Returns index.html (webpage)                |
+| `/help`          | `GET`    | Returns help infromation as text            |
+| `/data`          | `GET`    | Returns all data from Redis                 |
+| `/data`          | `POST`   | Retrieves data from NOAA’s NCEI website     |
+| `/data`          | `DELETE` | Deletes all data from Redis                 |
+| `/jobs`          | `GET`    | Returns all job IDs                         |
+| `/jobs`          | `POST`   | Posts a new job to Redis and returns job ID |
+| `/jobs/<jid>`    | `GET`    | Returns information for a specific job ID   |
+| `/results/<jid>` | `GET`    | Returns results from a specific job ID      |
 
 
 ### Interpretation
