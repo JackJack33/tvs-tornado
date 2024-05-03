@@ -17,6 +17,8 @@ handler = RedisHandler()
 def index():
     """
     Main Route which only works when data exists on the server, otherwise returns an error message.
+
+    :return:        HTML        web app webpage
     """
     if len(handler.get_keys(RedisEnum.DATA)) == 0:
         return 'Error: No data has been POSTed to the server. The webpage will remain inactive until such a time.\n'
@@ -24,12 +26,26 @@ def index():
     return render_template('index.html', host_ip='localhost')
 
 
+@app.route('/help', methods=['GET'])
+def get_help():
+    """
+    Route to return help information
+
+    :return:        str          help information
+    """
+    with open('static/help.txt', 'r') as f:
+        return list(f)
+
+
 @app.route('/data', methods=['GET', 'POST', 'DELETE'])
 def data():
     """
-    Route to pull data into Redis database, retrieve data, or
+    Route to pull data into, retrieve data from, or delete data from Redis database.
 
-    :return:
+    Return by method:
+        GET     JSON    Return JSON representation of all records from Redis database
+        POST    str     Pull data from NOAA static host and add it to Redis database, return success message
+        DELETE  str     Delete data from Redis database
     """
     if request.method == 'POST':
         logging.info('Retrieving data from NOAA data host...')
@@ -55,6 +71,13 @@ def data():
 
 @app.route('/jobs', methods=['GET', 'POST'])
 def jobs():
+    """
+    Route to get list of existing jobs by IDs or create a job
+
+    Return by method:
+        GET     list    Return list of all job IDs in jobs database
+        POST    str     Creates new job from web app inputs and returns ID of created job
+    """
     if request.method == 'POST':
         request.json['polygon'] = 'POLYGON((' + ' '.join([f'{lon} {lat}' for lon, lat in request.json['polygon']]) + '))'
         request.json['warning_types'] = ', '.join(request.json['warning_types'])
@@ -70,17 +93,20 @@ def job_info(jid):
     '''
     Route to return information about a given job ID from Redis database
 
-    Parameters:
-        jid       str     target job ID
-
-    Returns:
-        JSON        containing contents of target job ID
+    :param jid:    str      Job ID
+    :return:       JSON     Job information
     '''
     return {key.decode(): val.decode() for key, val in handler.get(RedisEnum.JOBS, jid, True).items()}
 
 
 @app.route('/results/<jid>', methods=['GET'])
 def results(jid):
+    """
+    Route to return base64 encoded png results from a given job ID from Redis database
+
+    :param jid:
+    :return:        bytes       base64 encoded png result
+    """
     logging.info(f'Request made to get results for jid: {jid}...')
     status = handler.hget(RedisEnum.JOBS, jid, 'status').decode()
     if status in ['In Progress', 'Submitted']:
