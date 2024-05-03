@@ -6,7 +6,7 @@ metadata:
   labels:
     app: app-prod-deployment-worker
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: app-prod-deployment-worker
@@ -18,12 +18,12 @@ spec:
       containers:
         - name: app-prod-deployment-worker
           imagePullPolicy: Always
-          image: hsosbee/tvs_
+          image: hsosbee/tvs_worker
           ports:
           - name: http
             containerPort: 5000
           env:
             - name: REDIS_IP
-              value: "redis_db"
+              value: "redis-db"
             - name: SCRIPT
-              value: "web_app/api.py"
+              value: "worker.py"

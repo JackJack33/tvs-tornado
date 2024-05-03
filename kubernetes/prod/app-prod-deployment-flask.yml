@@ -24,6 +24,6 @@ spec:
             containerPort: 5000
           env:
             - name: REDIS_IP
-              value: "redis_db"
+              value: "redis-db"
             - name: SCRIPT
               value: "web_app/api.py"
