@@ -15,16 +15,26 @@ handler = RedisHandler()
 
 @app.route('/', methods=['GET'])
 def index():
+    """
+    Main Route which only works when data exists on the server, otherwise returns an error message.
+    """
+    if len(handler.get_keys(RedisEnum.DATA)) == 0:
+        return 'Error: No data has been POSTed to the server. The webpage will remain inactive until such a time.\n'
+
     return render_template('index.html', host_ip='localhost')
 
 
 @app.route('/data', methods=['GET', 'POST', 'DELETE'])
 def data():
+    """
+    Route to pull data into Redis database, retrieve data, or
+
+    :return:
+    """
     if request.method == 'POST':
         logging.info('Retrieving data from NOAA data host...')
         try:
-            # [handler.post_tvs_data(f'https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/warn-20{year:02}.csv.gz') for year in range(6, 17)]
-            handler.post_tvs_data(f'https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/warn-2006.csv.gz')
+            [handler.post_tvs_data(f'https://www.ncei.noaa.gov/pub/data/swdi/database-csv/v2/warn-20{year:02}.csv.gz') for year in range(6, 17)]
             return 'Successfully created database.\n'
         except EnvironmentError:
             logging.warning('POST /data request made with data already in Redis database...')
