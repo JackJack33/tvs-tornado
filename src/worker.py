@@ -11,16 +11,16 @@ from itertools import repeat
 
 handler = RedisHandler()
 q = handler._get_q_obj()
+transformer_to_cartesian = Transformer.from_crs(4326, 5070)
+transformer_to_geographic = Transformer.from_crs(5070, 4326)
 
 
 def to_cartesian(lon, lat):
-    transformer = Transformer.from_crs(4326, 5070)  # EPSG:4326 (WGS 84) to EPSG:5070 (NAD83 / Conus Albers)
-    return transformer.transform(lat, lon) # Switched for some reason
+    return transformer_to_cartesian.transform(lat, lon) # Switched for some reason
 
 
 def to_geographic(x, y):
-    transformer = Transformer.from_crs(5070, 4326)  # EPSG:5070 (NAD83 / Conus Albers) to EPSG:4326 (WGS 84)
-    return transformer.transform(x, y)
+    return transformer_to_geographic.transform(x, y)
 
 
 def convert_to_polygon(poly_string_in):
@@ -40,6 +40,7 @@ def count_relevant_polygon_intersections(warning_types, start_timestamp, end_tim
     # Initialize counts dictionary, months, warning_types
     months = []
     counts = {}
+
     for year in range(start_timestamp.year, end_timestamp.year + 1):
         counts[year] = {}
         for month in range(1, 12+1):
@@ -48,13 +49,18 @@ def count_relevant_polygon_intersections(warning_types, start_timestamp, end_tim
             for warning_type in warning_types:
                 counts[year][month][warning_type] = 0
 
+
     # Filter relevant warnings
     interest_poly = convert_to_polygon(interest_poly_string)
     for val in data_dict:
         val_timestamp = datetime.strptime(val['#ISSUEDATE'], '%Y-%m-%d %H:%M:%S.%f')
+
+
         if (val_timestamp < start_timestamp) or (val_timestamp > end_timestamp):
             continue
+
         warning_poly = convert_to_polygon(val['POLYGON'])
+
         if not (do_polygons_intersect(interest_poly, warning_poly)):
             continue
 

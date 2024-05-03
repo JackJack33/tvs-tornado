@@ -36,18 +36,23 @@ def test_do_polygons_intersect():
     assert do_polygons_intersect(poly1_in, poly2_in) == True
 
 def test_count_relevant_polygon_intersections():
+
+    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
     start_timestamp = datetime(2024, 1, 1)
     end_timestamp = datetime(2024, 12, 31)
     interest_poly_string = "POLYGON((-100.4 31.5 -98.5 29.4 -97.2 31.6))" # San Angelo, TX -> San Antonio, TX -> Waco, TX
     data_dict = [
         # Abilene, TX -> Uvalde, TX -> Bryan, TX
-        {'timestamp': '2024-01-05 10:00:00', 'type': 'SEVERE THUNDERSTORM', 'polygon': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
-        {'timestamp': '2024-02-10 12:00:00', 'type': 'TORNADO', 'polygon': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
-        {'timestamp': '2024-03-15 15:00:00', 'type': 'FLASH FLOOD', 'polygon': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
-        {'timestamp': '2024-04-20 18:00:00', 'type': 'SPECIAL MARINE', 'polygon': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'}
+        {'#ISSUEDATE': '2024-01-05 10:00:00.0', 'WARNINGTYPE': 'SEVERE THUNDERSTORM', 'POLYGON': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
+        {'#ISSUEDATE': '2024-02-10 12:00:00.0', 'WARNINGTYPE': 'TORNADO', 'POLYGON': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
+        {'#ISSUEDATE': '2024-03-15 15:00:00.0', 'WARNINGTYPE': 'FLASH FLOOD', 'POLYGON': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'},
+        {'#ISSUEDATE': '2024-04-20 18:00:00.0', 'WARNINGTYPE': 'SPECIAL MARINE', 'POLYGON': 'POLYGON((-99.7 32.4 -99.8 29.2 -96.4 30.7))'}
     ]
 
-    counts, months = count_relevant_polygon_intersections(start_timestamp, end_timestamp, interest_poly_string, data_dict)
+    counts, months = count_relevant_polygon_intersections(warning_types, start_timestamp, end_timestamp, interest_poly_string, data_dict)
+
+    print(counts)
+    print(months)
 
     assert isinstance(counts, dict)
     assert isinstance(months, list)
