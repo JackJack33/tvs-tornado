@@ -20,14 +20,18 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 
 #### Deployment
 ##### Local
+1. Make sure Docker & Redis are intalled on your computer
+2. Download or clone this repository into a directory.
+3. In the directory, run `docker-compose up` And wait for the Docker images to generate and for the Flask app to start.
+4. To check things are up and running, in a separate terminal window run `docker ps -a`
 ##### Kubernetes
 
 #### Usage
 ##### Local
+1. Interact with the local deployment using `curl localhost:5000/<route>`. See Flask Interaction below
 ##### Public
 
 ### Flask Interaction
-You can interact with the flask app via `curl localhost:5000/<route>` once it is up and running.
 
 | Route            | Method   | Description                                 |
 |------------------|----------|---------------------------------------------|
