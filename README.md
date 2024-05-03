@@ -42,7 +42,7 @@ Returned data includes summary statistics for four types of severe weather event
 
 | Warning Type          | Description                                                                                       |
 |-----------------------|---------------------------------------------------------------------------------------------------|
-| FLASH FLOOD           | A Flash Flood Warning is issued when rapidly rising water poses an immediate hazard to life and property. |
+| FLASH FLOOD           | Issued when rapidly rising water poses an immediate hazard to life and property. |
 | SPECIAL MARINE        | Warnings specifically tailored for marine interests (boats, shipping), to alert them to hazardous marine conditions such as strong winds, high waves, and thunderstorms. |
 | SEVERE THUNDERSTORM   | A thunderstorm characterized by one or more of the following: large hail (1 inch or greater in diameter), damaging winds (58 mph or greater), and/or tornadoes. |
 | TORNADO               | A violently rotating column of air in contact with the ground and extending from a thunderstorm cloud, capable of causing extreme damage and posing a serious threat to life and property. |
