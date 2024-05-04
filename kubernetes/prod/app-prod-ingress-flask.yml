@@ -15,6 +15,6 @@ spec:
           path: "/"
           backend:
             service:
-              name: app-prod-flask-ingress
+              name: app-prod-service-nodeport-flask
               port:
                   number: 5000
