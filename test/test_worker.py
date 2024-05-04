@@ -67,4 +67,8 @@ def test_count_relevant_polygon_intersections():
 
 
 if __name__ == '__main__':
+    test_to_cartesian()
+    test_to_geographic()
+    test_convert_to_polygon()
+    test_do_polygons_intersect()
     test_count_relevant_polygon_intersections()
