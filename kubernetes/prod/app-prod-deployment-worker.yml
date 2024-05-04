@@ -6,7 +6,7 @@ metadata:
   labels:
     app: app-prod-deployment-worker
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: app-prod-deployment-worker
