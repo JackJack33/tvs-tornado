@@ -18,7 +18,7 @@ spec:
       containers:
         - name: app-prod-deployment-worker
           imagePullPolicy: Always
-          image: hsosbee/tvs_worker:1.0
+          image: hsosbee/tvs_worker:1.1
           ports:
           - name: http
             containerPort: 5000
