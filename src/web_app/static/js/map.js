@@ -86,9 +86,10 @@ map.on('draw:created', (e) => {
         let xhr = new XMLHttpRequest()
         xhr.open('POST', `http://${host_ip}:5000/jobs`)
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
+        xhr.responseType = 'json'
         xhr.onreadystatechange = async () => {
             if (xhr.readyState === XMLHttpRequest.DONE) {
-                await get_results(host_ip, xhr.responseText)
+                await get_results(host_ip, xhr.response.id)
             }
         }
         xhr.send(JSON.stringify(payload))

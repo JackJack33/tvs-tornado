@@ -1,6 +1,7 @@
 import logging
 from io import BytesIO
 import base64
+import redis.exceptions
 from matplotlib.figure import Figure
 from redis_handler import RedisHandler, RedisEnum
 from shapely.geometry import Polygon
@@ -72,7 +73,7 @@ def count_relevant_polygon_intersections(warning_types, start_timestamp, end_tim
 
 
 @q.worker
-def worker(job_info: dict):
+def worker(job_info):
 
     # Needs inputs:
     # - start_date : start timestamp string
@@ -133,4 +134,9 @@ def worker(job_info: dict):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    worker()
+    try:
+        worker()
+    except redis.exceptions.BusyLoadingError:
+        from time import sleep
+        sleep(5)
+        worker()
