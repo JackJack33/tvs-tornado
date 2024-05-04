@@ -2,7 +2,7 @@ let map = L.map('map').setView([30.285955, -97.739320], 500)
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxNativeZoom: 19, maxZoom: 22, attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map)
-map.setZoom(18)
+map.setZoom(15)
 
 let end_date_elem = document.getElementById('end_date')
 end_date_elem.addEventListener('change', (e) => {
@@ -39,21 +39,59 @@ let drawControl = new L.Control.Draw({
     }
 })
 map.addControl(drawControl)
-map.on('draw:created', (e) => {
-    drawnItems.clearLayers()
-    drawnItems.addLayer(e.layer)
-    const inputs = document.getElementsByClassName('inputs');
-    let payload = {}
-    let points = Array()
-    let warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
-    Array.from(inputs).forEach((input) => {
-        if (!warning_types.includes(input.id) || input.checked) { payload[input.id] = input.value }
-    })
-    e.layer.getLatLngs().filter((element, index) => {return index % 2 === 0})[0].forEach((point) => {points.push([point.lat, point.lng])})
-    payload.polygon = points
 
-    let xhr = new XMLHttpRequest()
-    xhr.open('POST', 'http://localhost:5000/jobs')
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
-    xhr.send(JSON.stringify(payload))
+async function get_results(jid) {
+    let status
+    do {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const res = await fetch(`http://${host_ip}:5000/jobs/${jid}`)
+        const data = await res.json()
+        status = data.status
+    } while (status !== 'Complete')
+    const res = await fetch(`http://${host_ip}:5000/results/${jid}`)
+    const pic = await res.text()
+    document.getElementById('plot').src = `data:image/png;base64,${pic}`
+}
+
+map.on('draw:created', (e) => {
+    let payload = {'warning_types': []}
+    let warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
+    let warning_flag = false
+
+    const inputs = document.getElementsByClassName('inputs');
+    Array.from(inputs).forEach((input) => {
+        if (warning_types.includes(input.id) && input.checked) {
+            payload.warning_types.push(input.id)
+            warning_flag = true
+        } else if (!warning_types.includes(input.id)) {
+            payload[input.id] = input.value
+        }
+    })
+
+    if (!warning_flag) {
+        document.getElementById('warning_types').innerText = 'No warning types selected. Please check at least one warning type and then redraw your polygon.'
+    } else {
+        document.getElementById('warning_types').innerText = ''
+        drawnItems.clearLayers()
+        drawnItems.addLayer(e.layer)
+        let points = Array()
+
+        e.layer.getLatLngs().filter((element, index) => {
+            return index % 2 === 0
+        })[0].forEach((point) => {
+            points.push([point.lat, point.lng])
+        })
+        payload.polygon = points
+
+        let xhr = new XMLHttpRequest()
+        xhr.open('POST', `http://${host_ip}:5000/jobs`)
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
+        xhr.responseType = 'json'
+        xhr.onreadystatechange = async () => {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                await get_results(host_ip, xhr.response.id)
+            }
+        }
+        xhr.send(JSON.stringify(payload))
+    }
 })

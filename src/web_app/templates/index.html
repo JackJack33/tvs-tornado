@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block body %}
-    <p>First, select two dates--ensuring the latter date is later than the former. <br/> Second, draw a polygon on the map for the area of interest. <br/>Lastly, await the render fo your plot which will be revealed below</p>
+    <p>First, select two dates--ensuring the latter date is later than the former. <br/> Second, draw a polygon on the map for the area of interest. <br/>Lastly, await the render of your plot which will be revealed below</p>
     <input class="inputs" id="start_date" type="date" value="2006-01-01" min="2006-01-01" max="2016-01-01" />
     <input class="inputs" id="end_date" type="date" value="2016-01-01" min="2006-01-01" max="2016-01-01"  />
     <p id="dates"></p>
@@ -25,14 +25,19 @@
     <label for="FLASH FLOOD">FLASH FLOOD </label><br>
     <input class="inputs" id="SPECIAL MARINE" type="checkbox">
     <label for="SPECIAL MARINE">SPECIAL MARINE </label><br>
+    <p id="warning_types"></p>
 
-    <div id="map" style="width: 600px; height: 400px; position: relative; outline:none;"
-         class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
-         tabindex="0"></div>
-    <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <div>
+        <div id="map" style="width: 600px; height: 400px; position: relative; outline:none; float: left"
+             class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
+             tabindex="0"></div>
 
-    <img id="plot" alt="Loading Plot..." src=""/>
-    <script type="module" src="{{ url_for('static', filename='js/plot.js') }}"></script>
+        <img id="plot" alt="Awaiting Plot" src="" style="float: left"/>
+
+        <script type="text/javascript"> let host_ip = '{{ host_ip }}' </script>
+        <script type="module" src="{{ url_for('static', filename='js/map.js') }}"></script>
+
+    </div>
 {% endblock %}
 
 

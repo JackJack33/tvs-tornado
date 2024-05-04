@@ -1,5 +1,7 @@
+import logging
 from io import BytesIO
 import base64
+import redis.exceptions
 from matplotlib.figure import Figure
 from redis_handler import RedisHandler, RedisEnum
 from shapely.geometry import Polygon
@@ -10,16 +12,16 @@ from itertools import repeat
 
 handler = RedisHandler()
 q = handler._get_q_obj()
+transformer_to_cartesian = Transformer.from_crs(4326, 5070)
+transformer_to_geographic = Transformer.from_crs(5070, 4326)
 
 
 def to_cartesian(lon, lat):
-    transformer = Transformer.from_crs(4326, 5070)  # EPSG:4326 (WGS 84) to EPSG:5070 (NAD83 / Conus Albers)
-    return transformer.transform(lat, lon) # Switched for some reason
+    return transformer_to_cartesian.transform(lat, lon) # Switched for some reason
 
 
 def to_geographic(x, y):
-    transformer = Transformer.from_crs(5070, 4326)  # EPSG:5070 (NAD83 / Conus Albers) to EPSG:4326 (WGS 84)
-    return transformer.transform(x, y)
+    return transformer_to_geographic.transform(x, y)
 
 
 def convert_to_polygon(poly_string_in):
@@ -34,12 +36,12 @@ def do_polygons_intersect(poly1_in, poly2_in): # Separated for testing purposes
     return poly1_in.intersects(poly2_in)
 
 
-def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interest_poly_string, data_dict):
+def count_relevant_polygon_intersections(warning_types, start_timestamp, end_timestamp, interest_poly_string, data_dict):
 
     # Initialize counts dictionary, months, warning_types
-    warning_types = ['SEVERE THUNDERSTORM', 'TORNADO', 'FLASH FLOOD', 'SPECIAL MARINE']
     months = []
     counts = {}
+
     for year in range(start_timestamp.year, end_timestamp.year + 1):
         counts[year] = {}
         for month in range(1, 12+1):
@@ -48,19 +50,24 @@ def count_relevant_polygon_intersections(start_timestamp, end_timestamp, interes
             for warning_type in warning_types:
                 counts[year][month][warning_type] = 0
 
+
     # Filter relevant warnings
     interest_poly = convert_to_polygon(interest_poly_string)
     for val in data_dict:
-        val_timestamp = datetime.strptime(val['timestamp'], '%Y-%m-%d %H:%M:%S')
+        val_timestamp = datetime.strptime(val['#ISSUEDATE'], '%Y-%m-%d %H:%M:%S.%f')
+
+
         if (val_timestamp < start_timestamp) or (val_timestamp > end_timestamp):
             continue
-        warning_poly = convert_to_polygon(val['polygon'])
+
+        warning_poly = convert_to_polygon(val['POLYGON'])
+
         if not (do_polygons_intersect(interest_poly, warning_poly)):
             continue
 
         year = val_timestamp.year
         month = val_timestamp.month
-        counts[year][month][val['type']] += 1
+        counts[year][month][val['WARNINGTYPE']] += 1
 
     return counts, months
 
@@ -73,17 +80,26 @@ def worker(job_info):
     # - end_date   : end timestamp string
     # - polygon    : polygon string of interest
 
+    logging.info("Worker function started.")
+
+    warning_types = job_info['warning_types'].split(', ')
     start_date = datetime.strptime(job_info['start_date'], '%Y-%m-%d')
     end_date = datetime.strptime(job_info['end_date'], '%Y-%m-%d')
 
+    logging.info(warning_types)
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'In Progress'))
+
+    logging.info("Retrieving all Redis data...")
     data_dict = handler.get_all_data()
-    counts, months = count_relevant_polygon_intersections(start_date, end_date, job_info['polygon'], data_dict)
+
+    logging.info("Done. Counting...")
+    counts, months = count_relevant_polygon_intersections(warning_types, start_date, end_date, job_info['polygon'], data_dict)
+
+    logging.info("Done. Graphing...")
 
     # Graph
     fig = Figure()
     ax = fig.subplots()
-    # months = pd.date_range('2006-1-1','2016-12-31', freq='1ME').strftime('%m-%Y').str.split('-').tolist()
 
     def get_count(dates, warning_type):
         try:
@@ -91,15 +107,21 @@ def worker(job_info):
         except KeyError:
             return 0
 
-    for warning_type in job_info['warning_types']:
-        counts_list = list(map(get_count, months, repeat(warning_type)))
-        ax.plot(months, counts_list, label=warning_type)
-    ax.xlabel('Time')
-    ax.ylabel('Count')
-    ax.title('Event Counts Over Time')
+    flattened_months = [f"{month}-{year}" for year, month in months]
+
+    for warning_type in warning_types:
+        counts_list = [get_count([str(month), str(year)], warning_type) for year, month in months]
+        ax.plot(flattened_months, counts_list, label=warning_type)
+
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Count')
+    ax.set_title('Event Counts Over Time')
     ax.legend()
     ax.grid(True)
-    ax.xticks(rotation=45)
+    ax.tick_params(axis='x', rotation=45)
+
+
+    logging.info("Done. Exporting...")
 
     # Completion
 
@@ -107,7 +129,14 @@ def worker(job_info):
     fig.savefig(buf, format='png')
     handler.set(RedisEnum.RESULTS, job_info['id'], base64.b64encode(buf.getbuffer()))
     handler.set(RedisEnum.JOBS, job_info['id'], ('status', 'Complete'))
+    logging.info("Done. Worker function ended.")
 
 
 if __name__ == '__main__':
-    worker()
+    logging.basicConfig(level=logging.INFO)
+    try:
+        worker()
+    except redis.exceptions.BusyLoadingError:
+        from time import sleep
+        sleep(5)
+        worker()

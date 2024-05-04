@@ -1,4 +1,3 @@
-import logging
 import os
 import uuid
 from typing import Union
@@ -18,9 +17,9 @@ class RedisEnum:
 
 class RedisHandler:
     def __init__(self):
-        # if 'REDIS_IP' not in os.environ:
-        #     raise KeyError('REDIS_IP environment variable is not defined.')
-        ip = os.getenv('REDIS_IP', 'localhost')
+        if 'REDIS_IP' not in os.environ:
+            raise KeyError('REDIS_IP environment variable is not defined.')
+        ip = os.environ['REDIS_IP']
         self.__db = [redis.Redis(host=ip, port=6379, db=num) for num in range(3)]
         self.__q = HotQueue('queue', host=ip, port=6379, db=3)
 
