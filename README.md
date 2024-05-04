@@ -7,14 +7,13 @@ This web app uses a combination of Flask, Redis, Leaflet, and Kubernetes to prov
 These statistics are from 2006 to 2016, and are provided in `.csv.gz` format from NOAA's NCEI.
 
 ### Scripts
-| Script              | Description                                        |
-|---------------------|----------------------------------------------------|
-| `api.py`              | Manages Flask API                                  |
-| `redis_handler.py`    | Manages data, jobs, and results databases          |
-| `worker.py`           | Runs polygon intersection functions to filter relevant data and provide graphs |
-| `test_api.py`         | Test file for api.py                               |
-| `test_redis_handler.py` | Test file for redis_handler.py                     |
-| `test_worker.py`     | Test file for worker.py                            |
+| Script             | Description                                                                    |
+|--------------------|--------------------------------------------------------------------------------|
+| `api.py`           | Manages Flask API                                                              |
+| `redis_handler.py` | Manages data, jobs, and results databases                                      |
+| `worker.py`        | Runs polygon intersection functions to filter relevant data and provide graphs |
+| `test_api.py`      | Test file for api.py                                                           |
+| `test_worker.py`   | Test file for worker.py                                                        |
 
 ### Running the Code
 
@@ -29,6 +28,7 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 #### Usage
 ##### Local
 1. Interact with the local deployment using `curl localhost:5000/<route>`. See Flask Interaction below
+2. Since the test scripts interact with the server through HTTP requests or merely the functions in this codebase, the scripts can be executed locally using either `python test_worker.py` or `python test_api.py <host_ip>`.
 ##### Public
 
 ### Flask Interaction
@@ -36,7 +36,7 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 | Route            | Method   | Description                                 |
 |------------------|----------|---------------------------------------------|
 | `/`              | `GET`    | Returns index.html (webpage)                |
-| `/help`          | `GET`    | Returns help infromation as text            |
+| `/help`          | `GET`    | Returns help information as text            |
 | `/data`          | `GET`    | Returns all data from Redis                 |
 | `/data`          | `POST`   | Retrieves data from NOAA’s NCEI website     |
 | `/data`          | `DELETE` | Deletes all data from Redis                 |
