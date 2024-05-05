@@ -89,7 +89,7 @@ map.on('draw:created', (e) => {
         xhr.responseType = 'json'
         xhr.onreadystatechange = async () => {
             if (xhr.readyState === XMLHttpRequest.DONE) {
-                await get_results(flask_ip, xhr.response.id)
+                await get_results(xhr.response.id)
             }
         }
         xhr.send(JSON.stringify(payload))
