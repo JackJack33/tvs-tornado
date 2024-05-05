@@ -44,11 +44,11 @@ async function get_results(jid) {
     let status
     do {
         await new Promise(resolve => setTimeout(resolve, 500));
-        const res = await fetch(`http://${flask_ip}:5000/jobs/${jid}`)
+        const res = await fetch(`http://${flask_ip}/jobs/${jid}`)
         const data = await res.json()
         status = data.status
     } while (status !== 'Complete')
-    const res = await fetch(`http://${flask_ip}:5000/results/${jid}`)
+    const res = await fetch(`http://${flask_ip}/results/${jid}`)
     const pic = await res.text()
     document.getElementById('plot').src = `data:image/png;base64,${pic}`
 }
@@ -84,7 +84,7 @@ map.on('draw:created', (e) => {
         payload.polygon = points
 
         let xhr = new XMLHttpRequest()
-        xhr.open('POST', `http://${flask_ip}:5000/jobs`)
+        xhr.open('POST', `http://${flask_ip}/jobs`)
         xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8')
         xhr.responseType = 'json'
         xhr.onreadystatechange = async () => {

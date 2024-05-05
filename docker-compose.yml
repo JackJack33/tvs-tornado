@@ -10,6 +10,7 @@ services:
       - redis_db
     environment:
       REDIS_IP: 'redis_db'
+      FLASK_IP: 'localhost'
       SCRIPT: 'web_app/api.py'
     ports:
       - "5000:5000"
