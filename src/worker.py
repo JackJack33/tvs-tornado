@@ -25,7 +25,7 @@ def to_geographic(x, y):
 
 
 def convert_to_polygon(poly_string_in):
-    coords_str = poly_string_in.split("((")[1].split("))")[0] # POLYGON((Lon Lat Lon Lat...))
+    coords_str = poly_string_in.split("(")[-1].split(")")[0] # POLYGON((Lon Lat Lon Lat...))
     coords = coords_str.strip().split()
     lon_lat_pairs = [(float(coords[i]), float(coords[i+1])) for i in range(0, len(coords), 2)]
     lon_lat_pairs_cartesian = [to_cartesian(lon, lat) for lon, lat in lon_lat_pairs]
