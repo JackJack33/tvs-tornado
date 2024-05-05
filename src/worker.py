@@ -109,9 +109,15 @@ def worker(job_info):
 
     flattened_months = [f"{month}-{year}" for year, month in months]
 
+    logging.info("=========================")
+    logging.info(counts)
+    logging.info("=========================")
+
     for warning_type in warning_types:
         counts_list = [get_count([str(month), str(year)], warning_type) for year, month in months]
         ax.plot(flattened_months, counts_list, label=warning_type)
+        logging.info(counts_list)
+        logging.info("=========================")
 
     ax.set_xlabel('Time')
     ax.set_ylabel('Count')
