@@ -23,7 +23,7 @@ def index():
     if len(handler.get_keys(RedisEnum.DATA)) == 0:
         return 'Error: No data has been POSTed to the server. The webpage will remain inactive until such a time.\n'
 
-    return render_template('index.html', host_ip='localhost')
+    return render_template('index.html', host_ip=os.environ['REDIS_IP'])
 
 
 @app.route('/help', methods=['GET'])
