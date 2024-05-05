@@ -123,6 +123,12 @@ def worker(job_info):
         logging.info(counts_list)
         logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-")
 
+
+    num_ticks = 10
+    step_size = max(1, len(flattened_months) // num_ticks)
+    selected_ticks = flattened_months[::step_size]
+    ax.set_xticks(selected_ticks)
+
     ax.set_xlabel('Time')
     ax.set_ylabel('Count')
     ax.set_title('Event Counts Over Time')
