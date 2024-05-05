@@ -20,16 +20,22 @@ These statistics are from 2006 to 2016, and are provided in `.csv.gz` format fro
 #### Deployment
 ##### Local
 1. Make sure Docker & Redis are intalled on your computer
-2. Download or clone this repository into a directory.
-3. In the directory, run `docker-compose up` And wait for the Docker images to generate and for the Flask app to start.
+2. Download or clone this repository into a directory
+3. In the directory, run `docker-compose up` And wait for the Docker images to generate and for the Flask app to start
 4. To check things are up and running, in a separate terminal window run `docker ps -a`
 ##### Kubernetes
-
+1. Make sure you're on a machine with access to kubernetes
+2. Download or clone this repository into a directory
+3. In the directory, run `kubectl apply -f kubernetes/prod/` or to run the test mode, just replace 'prod' with test
+4. To check things are up and running, run `kubectl get pods`,  `kubectl get services`, `kubectl get pvc`, and `kubectl get ingress`
+ 
 #### Usage
 ##### Local
 1. Interact with the local deployment using `curl localhost:5000/<route>`. See Flask Interaction below
 2. Since the test scripts interact with the server through HTTP requests or merely the functions in this codebase, the scripts can be executed locally using either `python test_worker.py` or `python test_api.py <host_ip>`.
 ##### Public
+1. Interact with the kubernetes deployment using `curl hsosbee-flask.coe332.tacc.cloud/`. See Flask Interaction below
+2. After using `curl hsosbee-flask.coe332.tacc.cloud/data -X POST` you can then eihter continue using the terminal, or go to http://hsosbee-flask.coe332.tacc.cloud/ and access the webpage
 
 ### Flask Interaction
 
