@@ -102,6 +102,15 @@ def worker(job_info):
     ax = fig.subplots()
 
     def get_count(dates, warning_type):
+        logging.info("--------")
+        logging.info(dates)
+        logging.info(warning_type)
+        logging.info(dates[1])
+        logging.info(dates[0])
+        logging.info(counts[dates[1]])
+        logging.info(counts[dates[1]][dates[0]])
+        logging.info(counts[dates[1]][dates[0]][warning_type])
+        logging.info("--------")
         try:
             return counts[dates[1]][dates[0]][warning_type]
         except KeyError:
@@ -112,12 +121,16 @@ def worker(job_info):
     logging.info("=========================")
     logging.info(counts)
     logging.info("=========================")
+    logging.info(months)
+    logging.info("=========================")
+    logging.info(flattened_months)
+    logging.info("=========================")
 
     for warning_type in warning_types:
         counts_list = [get_count([str(month), str(year)], warning_type) for year, month in months]
         ax.plot(flattened_months, counts_list, label=warning_type)
         logging.info(counts_list)
-        logging.info("=========================")
+        logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-")
 
     ax.set_xlabel('Time')
     ax.set_ylabel('Count')
