@@ -79,7 +79,7 @@ map.on('draw:created', (e) => {
         e.layer.getLatLngs().filter((element, index) => {
             return index % 2 === 0
         })[0].forEach((point) => {
-            points.push([point.lat, point.lng])
+            points.push([point.lng, point.lat])
         })
         payload.polygon = points
 
