@@ -127,7 +127,7 @@ def worker(job_info):
     logging.info("=========================")
 
     for warning_type in warning_types:
-        counts_list = [get_count(int(month), int(year)], warning_type) for month, year in months]
+        counts_list = [get_count([int(month), int(year)], warning_type) for month, year in months]
         ax.plot(flattened_months, counts_list, label=warning_type)
         logging.info(counts_list)
         logging.info("-=-=-=-=-=-=-=-=-=-=-=-=-")
