@@ -1,0 +1,12 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+    name: app-test-service-nodeport-flask
+spec:
+    type: NodePort
+    selector:
+        app: app-test-deployment-flask
+    ports:
+        - port: 5000
+          targetPort: 5000

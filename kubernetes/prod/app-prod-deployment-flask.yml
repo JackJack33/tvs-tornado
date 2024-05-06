@@ -25,5 +25,7 @@ spec:
           env:
             - name: REDIS_IP
               value: "redis-db"
+            - name: FLASK_IP
+              value: "hsosbee-flask.coe332.tacc.cloud"
             - name: SCRIPT
               value: "web_app/api.py"

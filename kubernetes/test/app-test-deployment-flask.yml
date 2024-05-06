@@ -2,28 +2,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-prod-deployment-worker
+  name: app-test-deployment-flask
   labels:
-    app: app-prod-deployment-worker
+    app: app-test-deployment-flask
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app-prod-deployment-worker
+      app: app-test-deployment-flask
   template:
     metadata:
       labels:
-        app: app-prod-deployment-worker
+        app: app-test-deployment-flask
     spec:
       containers:
-        - name: app-prod-deployment-worker
+        - name: app-test-deployment-flask
           imagePullPolicy: Always
-          image: hsosbee/tvs_worker:1.3
+          image: hsosbee/tvs_api:latest
           ports:
           - name: http
             containerPort: 5000
           env:
             - name: REDIS_IP
               value: "redis-db"
+            - name: FLASK_IP
+              value: "hsosbee-flask.coe332.tacc.cloud"
             - name: SCRIPT
-              value: "worker.py"
+              value: "web_app/api.py"
